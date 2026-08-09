@@ -1,0 +1,15 @@
+flowchart TD
+    Start([START]) --> Triage[Triage]
+    Triage -->|answerable| Retrieval[Retrieval]
+    Triage -->|requires clarification| Clarification[Clarification response]
+    Triage -->|requires escalation| Escalation[Escalation response]
+    Triage -->|out of scope| Refusal[Safe refusal]
+    Retrieval --> Generation[Generation]
+    Generation --> Verification[Verification]
+    Verification -->|pass or retry cap reached| Finalize[Finalize]
+    Verification -->|fail and retry_count less than 1| Revision[Revision]
+    Revision --> Verification
+    Clarification --> End([END])
+    Escalation --> End
+    Refusal --> End
+    Finalize --> End
