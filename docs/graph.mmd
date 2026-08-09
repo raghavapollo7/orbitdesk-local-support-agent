@@ -1,15 +1,32 @@
 flowchart TD
-    Start([START]) --> Triage[Triage]
+    Start([START]) -->|incoming request| Triage[Triage]
     Triage -->|answerable| Retrieval[Retrieval]
+    Retrieval -->|evidence| Generation[Generation]
+    Generation -->|draft answer| Verification[Verification]
+    Verification -->|approved| Finalize[Finalize]
+    Finalize -->|response sent| MainEnd([END])
+    Verification -->|failed verification| Revision[Revision<br/>max 1 retry]
+    Revision -->|revised answer| Verification
+
     Triage -->|requires clarification| Clarification[Clarification response]
+    Clarification -->|response sent| ClarificationEnd([END])
     Triage -->|requires escalation| Escalation[Escalation response]
+    Escalation -->|response sent| EscalationEnd([END])
     Triage -->|out of scope| Refusal[Safe refusal]
-    Retrieval --> Generation[Generation]
-    Generation --> Verification[Verification]
-    Verification -->|pass or retry cap reached| Finalize[Finalize]
-    Verification -->|fail and retry_count less than 1| Revision[Revision]
-    Revision --> Verification
-    Clarification --> End([END])
-    Escalation --> End
-    Refusal --> End
-    Finalize --> End
+    Refusal -->|response sent| RefusalEnd([END])
+
+    subgraph Legend
+        Happy[Blue: answerable pipeline]
+        Retry[Orange: verification retry]
+        Exception[Gray: short-circuit response]
+    end
+
+    classDef happy fill:#e9f2ff,stroke:#2563eb,color:#172554,stroke-width:2px
+    classDef retry fill:#fff3e0,stroke:#d97706,color:#78350f,stroke-width:2px
+    classDef exception fill:#f3f4f6,stroke:#6b7280,color:#1f2937,stroke-width:2px
+    class Start,Triage,Retrieval,Generation,Verification,Finalize,MainEnd happy
+    class Revision retry
+    class Clarification,ClarificationEnd,Escalation,EscalationEnd,Refusal,RefusalEnd exception
+    class Happy happy
+    class Retry retry
+    class Exception exception
